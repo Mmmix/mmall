@@ -113,16 +113,16 @@ public class UserServiceImpl implements IUserService {
             return ServerResponse.createByErrorMessage("用户名不存在");
         }
         String token = TokenCache.getKey(TokenCache.TOKEN_PREFIX + username);
-        if (StringUtils.isBlank(token)){
+        if (StringUtils.isBlank(token)) {
             return ServerResponse.createByErrorMessage("token无效或者过期");
         }
-        if (StringUtils.equals(forgetToken,token)){
+        if (StringUtils.equals(forgetToken, token)) {
             String Md5Password = MD5Util.MD5EncodeUtf8(passwordNew);
-            int rowCount = userMapper.updatePasswordByUsername(username,Md5Password);
-            if (rowCount>0){
+            int rowCount = userMapper.updatePasswordByUsername(username, Md5Password);
+            if (rowCount > 0) {
                 return ServerResponse.createBySuccessMessage("修改密码成功");
             }
-        }else {
+        } else {
             return ServerResponse.createByErrorMessage("token错误，请重新获取重置密码的token");
         }
         return ServerResponse.createByErrorMessage("未知错误，修改密码失败");
@@ -131,13 +131,13 @@ public class UserServiceImpl implements IUserService {
     @Override
     public ServerResponse<String> resetPassword(String oldPassword, String newPassword, User user) {
         //防止横向越权，要校验以下这个用户的旧密码，一定要指定是这个用户，
-        int resultCount = userMapper.checkPassword(MD5Util.MD5EncodeUtf8(oldPassword),user.getId());
-        if (resultCount==0){
+        int resultCount = userMapper.checkPassword(MD5Util.MD5EncodeUtf8(oldPassword), user.getId());
+        if (resultCount == 0) {
             return ServerResponse.createByErrorMessage("旧密码错误");
         }
         user.setPassword(MD5Util.MD5EncodeUtf8(newPassword));
         resultCount = userMapper.updateByPrimaryKeySelective(user);
-        if (resultCount>0){
+        if (resultCount > 0) {
             return ServerResponse.createBySuccessMessage("密码更新成功");
         }
         return ServerResponse.createByErrorMessage("密码更新失败");
@@ -147,8 +147,8 @@ public class UserServiceImpl implements IUserService {
     public ServerResponse<User> updateInfomation(User user) {
         //username是不能被更新的
         //Email也要进行校验
-        int resultCount = userMapper.checkEmailByUserId(user.getEmail(),user.getId());
-        if (resultCount>0){
+        int resultCount = userMapper.checkEmailByUserId(user.getEmail(), user.getId());
+        if (resultCount > 0) {
             return ServerResponse.createByErrorMessage("email已存在，请更换email在尝试更新");
         }
         User updateUser = new User();
@@ -158,7 +158,7 @@ public class UserServiceImpl implements IUserService {
         updateUser.setAnswer(user.getAnswer());
 
         resultCount = userMapper.updateByPrimaryKeySelective(updateUser);
-        if (resultCount>0){
+        if (resultCount > 0) {
             return ServerResponse.createBySuccessMessage("更新个人信息成功");
         }
         return ServerResponse.createByErrorMessage("更新个人信息失败");
@@ -167,10 +167,27 @@ public class UserServiceImpl implements IUserService {
     @Override
     public ServerResponse<User> getInformation(Integer userId) {
         User user = userMapper.selectByPrimaryKey(userId);
-        if (user==null){
+        if (user == null) {
             return ServerResponse.createByErrorMessage("找不到当前用户");
         }
         user.setPassword(StringUtils.EMPTY);
         return ServerResponse.createBySuccess(user);
+    }
+
+    //backend
+
+    /**
+     * 校验是否是管理员
+     *
+     * @param user
+     * @return
+     */
+
+    @Override
+    public ServerResponse checkAdminRole(User user) {
+        if (user != null && user.getRole() == Const.Role.ROLE_ADMIN) {
+            return ServerResponse.createBySuccess();
+        }
+        return ServerResponse.createByError();
     }
 }

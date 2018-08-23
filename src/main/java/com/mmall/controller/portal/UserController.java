@@ -12,17 +12,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpSession;
-import java.util.UUID;
 
 @Controller
-@RequestMapping(value = "/user/")
+@RequestMapping(value = "/user")
 public class UserController {
     @Autowired
     IUserService userService;
 
-    @RequestMapping(value = "hello",method = RequestMethod.GET)
-    public String index(){
-        return "index";
+    @RequestMapping(value = "fun.do",method = RequestMethod.GET)
+    @ResponseBody
+    public ServerResponse fun(){
+        return ServerResponse.createBySuccess("213");
     }
 
     @RequestMapping(value = "login.do", method = RequestMethod.POST)
